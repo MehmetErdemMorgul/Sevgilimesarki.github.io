@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bizim Playlist 💗</title>
+
+  <style>
+    :root{
+      --bg:#0b0f14;
+      --card:#111a24;
+      --stroke:rgba(255,255,255,.08);
+      --text:#e9f0fb;
+      --muted:#a7b6cc;
+      --pink:#ff4d8d;
+      --blue:#4aa3ff;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background: radial-gradient(1000px 600px at 20% -10%, rgba(255,77,141,.18), transparent 60%),
+                  radial-gradient(900px 520px at 90% 10%, rgba(74,163,255,.14), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+    }
+    .wrap{
+      width:min(1100px, 92vw);
+      margin:0 auto;
+      padding:16px 0 96px; /* alttaki player için boşluk */
+    }
+
+    /* Minimal üst bar */
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin:6px 0 14px;
+    }
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    .heartBadge{
+      width:34px;height:34px;
+      border-radius:12px;
+      display:grid;place-items:center;
+      background:rgba(255,77,141,.16);
+      border:1px solid rgba(255,77,141,.25);
+      box-shadow:0 10px 28px rgba(255,77,141,.12);
+      user-select:none;
+    }
+    .sub{
+      color:var(--muted);
+      font-size:13px;
+      display:flex;align-items:center;gap:8px;
+      user-select:none;
+    }
+
+    /* BANNER (foto otomatik ayarlı) */
+    .banner{
+      position:relative;
+      height:600px;
+      border-radius:20px;
+      overflow:hidden;
+      border:1px solid var(--stroke);
+      background:#000;
+      box-shadow:0 22px 60px rgba(0,0,0,.45);
+    }
+    .slides{
+      display:flex;
+      height:100%;
+      transition:transform 650ms ease;
+    }
+    .slide{
+      min-width:100%;
+      height:100%;
+      position:relative;
+      background:#000;
+    }
+
+    /* ✅ Fotoğrafların direkt ayarlanması:
+       img banner alanını doldurur, oran bozulmaz, taşma olmaz */
+    .slide img{
+      width:100%;
+      height:100%;
+      display:block;
+      object-fit:cover;        /* en iyi otomatik ayar */
+      object-position:center;  /* odak noktası (istersen değiştirilebilir) */
+      transform: scale(1.02);  /* kenar kesimlerini yumuşatır */
+      filter: contrast(1.02) saturate(1.03);
+    }
+
+    /* hafif romantik vignette */
+    .vignette{
+      position:absolute; inset:0;
+      background:
+        radial-gradient(600px 300px at 10% 90%, rgba(255,77,141,.18), transparent 60%),
+        radial-gradient(600px 300px at 90% 10%, rgba(74,163,255,.14), transparent 60%),
+        linear-gradient(180deg, rgba(0,0,0,.12), rgba(0,0,0,.45));
+      pointer-events:none;
+    }
+
+    .cornerHearts{
+      position:absolute; inset:0;
+      pointer-events:none;
+      opacity:.9;
+    }
+    .cornerHearts span{
+      position:absolute;
+      font-size:18px;
+      filter: drop-shadow(0 8px 14px rgba(0,0,0,.35));
+    }
+    .cornerHearts .h1{ left:14px; top:12px; color:rgba(255,77,141,.95); transform:rotate(-10deg); }
+    .cornerHearts .h2{ right:16px; top:14px; color:rgba(255,255,255,.85); transform:rotate(12deg); }
+    .cornerHearts .h3{ left:18px; bottom:14px; color:rgba(255,255,255,.85); transform:rotate(8deg); }
+    .cornerHearts .h4{ right:14px; bottom:12px; color:rgba(255,77,141,.95); transform:rotate(-8deg); }
+
+    .dots{
+      position:absolute;
+      left:50%;
+      transform:translateX(-50%);
+      bottom:14px;
+      display:flex;
+      gap:8px;
+      padding:10px 12px;
+      border-radius:999px;
+      background:rgba(0,0,0,.35);
+      border:1px solid rgba(255,255,255,.10);
+      backdrop-filter: blur(8px);
+    }
+    .dot{
+      width:10px;height:10px;border-radius:50%;
+      border:1px solid rgba(255,255,255,.55);
+      opacity:.75;
+      cursor:pointer;
+    }
+    .dot.active{
+      background:var(--pink);
+      border-color:var(--pink);
+      opacity:1;
+    }
+
+    .row{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:12px;
+      margin:18px 0 10px;
+    }
+    .row h2{
+      margin:0;
+      font-size:16px;
+      letter-spacing:.2px;
+      display:flex;align-items:center;gap:8px;
+    }
+    .hint{ color:var(--muted); font-size:13px; }
+
+    /* SONG GRID */
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap:12px;
+    }
+    .card{
+      background:rgba(17,26,36,.92);
+      border:1px solid var(--stroke);
+      border-radius:18px;
+      padding:14px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      box-shadow:0 14px 30px rgba(0,0,0,.25);
+      cursor:pointer;
+    }
+    .thumb{
+      width:54px;height:54px;border-radius:16px;
+      background:linear-gradient(135deg, rgba(255,77,141,.22), rgba(74,163,255,.16));
+      border:1px solid rgba(255,255,255,.08);
+      display:grid;place-items:center;
+      font-size:20px;
+      user-select:none;
+      flex:0 0 auto;
+    }
+    .meta{ flex:1; min-width:0; }
+    .title{
+      font-weight:900;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .artist{ color:var(--muted); font-size:13px; margin-top:2px; }
+
+    .pill{
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,77,141,.22);
+      background:rgba(255,77,141,.14);
+      font-size:12px;
+      color:rgba(255,255,255,.9);
+      user-select:none;
+    }
+
+    /* FIXED PLAYER */
+    .player{
+      position:fixed;
+      left:0; right:0; bottom:0;
+      background:rgba(10,14,20,.86);
+      border-top:1px solid rgba(255,255,255,.10);
+      backdrop-filter: blur(10px);
+      padding:12px 14px;
+    }
+    .playerInner{
+      width:min(1100px, 92vw);
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .nowPlaying{
+      min-width:0;
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+    }
+    .nowPlaying .npTitle{
+      font-weight:900;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .nowPlaying .npArtist{
+      color:var(--muted);
+      font-size:12.5px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .controls{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex:0 0 auto;
+    }
+    .controlBtn{
+      width:44px;height:44px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      cursor:pointer;
+      font-size:18px;
+    }
+    .controlBtn.primary{
+      background:rgba(255,77,141,.18);
+      border:1px solid rgba(255,77,141,.24);
+    }
+
+    @media (max-width: 900px){
+      .banner{ height:260px; }
+      .grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 560px){
+      .banner{ height:240px; border-radius:18px; }
+      .grid{ grid-template-columns: 1fr; }
+      .controlBtn{ width:42px;height:42px;border-radius:14px; }
+      /* mobilde genelde yüzler üst tarafta olur -> biraz yukarı odak */
+      .slide img{ object-position: center 25%; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="heartBadge">💗</div>
+        <div>Bizim Playlist</div>
+      </div>
+      <div class="sub">Siz <span style="color:var(--pink)">♥</span> Müzik</div>
+    </div>
+
+    <!-- Yazısız banner (fotoğraflar otomatik ayarlı) -->
+    <div class="banner" id="banner">
+      <div class="slides" id="slides">
+        <!-- Fotoğrafları buradan değiştir -->
+        <div class="slide">
+          <img src="photos/1.jpg" alt="photo 1" loading="lazy">
+          <div class="vignette"></div>
+        </div>
+        <div class="slide">
+          <img src="photos/2.jpg" alt="photo 2" loading="lazy">
+          <div class="vignette"></div>
+        </div>
+        <div class="slide">
+          <img src="photos/3.jpg" alt="photo 3" loading="lazy">
+          <div class="vignette"></div>
+        </div>
+        <div class="slide">
+          <img src="photos/4.jpg" alt="photo 3" loading="lazy">
+          <div class="vignette"></div>
+        </div>
+        <div class="slide">
+          <img src="photos/5.jpg" alt="photo 3" loading="lazy">
+          <div class="vignette"></div>
+        </div>
+      </div>
+
+      <div class="cornerHearts">
+        <span class="h1">💗</span>
+        <span class="h2">🤍</span>
+        <span class="h3">🤍</span>
+        <span class="h4">💗</span>
+      </div>
+
+      <div class="dots" id="dots"></div>
+    </div>
+
+    <div class="row">
+      <h2>Şarkılar 🎧 <span class="pill">Tıkla & Çalsın</span></h2>
+      <div class="hint">Şarkıya tıklayınca direkt çalar, alttan durdurabilirsin.</div>
+    </div>
+
+    <div class="grid" id="songGrid"></div>
+  </div>
+
+  <!-- Sabit player -->
+  <div class="player">
+    <div class="playerInner">
+      <div class="nowPlaying">
+        <div class="npTitle" id="npTitle">Şarkı seçilmedi 💗</div>
+        <div class="npArtist" id="npArtist">Bir şarkıya tıkla, ben çalayım 🎶</div>
+      </div>
+      <div class="controls">
+        <button class="controlBtn primary" id="playPause" title="Oynat/Durdur">▶</button>
+      </div>
+    </div>
+  </div>
+
+  <audio id="audio"></audio>
+
+  <script>
+    /* ---------- Banner Slider ---------- */
+    const slidesEl = document.getElementById("slides");
+    const dotsEl = document.getElementById("dots");
+    const totalSlides = slidesEl.children.length;
+    let current = 0;
+    let timer = null;
+
+    function renderDots(){
+      dotsEl.innerHTML = "";
+      for(let i=0;i<totalSlides;i++){
+        const d = document.createElement("div");
+        d.className = "dot" + (i === current ? " active" : "");
+        d.addEventListener("click", ()=> goTo(i, true));
+        dotsEl.appendChild(d);
+      }
+    }
+    function goTo(index, resetTimer=false){
+      current = (index + totalSlides) % totalSlides;
+      slidesEl.style.transform = `translateX(-${current * 100}%)`;
+      renderDots();
+      if(resetTimer) restartTimer();
+    }
+    function restartTimer(){
+      if(timer) clearInterval(timer);
+      timer = setInterval(()=> goTo(current + 1), 3200);
+    }
+    renderDots();
+    restartTimer();
+
+    /* ---------- Songs + Player ---------- */
+    /* ---------- Songs + Player (AUTO MP3) ---------- */
+
+// 🔥 sadece mp3 dosya isimleri
+const audioFiles = [
+  "Rigormortis (2).mp3",
+  "Söyledim Sana Bin Kere.mp3",
+];
+
+const grid = document.getElementById("songGrid");
+const audio = document.getElementById("audio");
+const npTitle = document.getElementById("npTitle");
+const npArtist = document.getElementById("npArtist");
+const playPause = document.getElementById("playPause");
+
+let currentFile = null;
+
+function renderSongs(){
+  grid.innerHTML = "";
+
+  audioFiles.forEach((file) => {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    // dosya adını temiz göster
+    const displayName = file
+      .replace(".mp3","")
+      .replace(/[-_]/g," ");
+
+    card.innerHTML = `
+      <div class="thumb">🎵</div>
+      <div class="meta">
+        <div class="title">${displayName}</div>
+      </div>
+      <div class="pill">▶</div>
+    `;
+
+    card.addEventListener("click", () => playSong(file));
+
+    grid.appendChild(card);
+  });
+}
+
+function playSong(file){
+  if(currentFile !== file){
+    audio.src = "audio/" + file;
+    currentFile = file;
+  }
+
+  audio.play().catch(()=>{});
+  npTitle.textContent = "💗 " + file.replace(".mp3","").replace(/[-_]/g," ");
+  npArtist.textContent = "audio / klasöründen çalıyor 🎧";
+  playPause.textContent = "⏸";
+}
+
+playPause.addEventListener("click", () => {
+  if(!audio.src) return;
+
+  if(audio.paused){
+    audio.play();
+    playPause.textContent = "⏸";
+  }else{
+    audio.pause();
+    playPause.textContent = "▶";
+  }
+});
+
+audio.addEventListener("ended", () => {
+  playPause.textContent = "▶";
+});
+
+renderSongs();
+
+  </script>
+</body>
+</html>
